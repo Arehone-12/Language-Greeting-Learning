@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Learn Greetings — Language Cards</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    /* Base + background */
+    :root{
+      --primary:#1e90ff;
+      --primary-dark:#0a1f44;
+      --accent:#4682b4;
+      --card-bg:rgba(255,255,255,0.15);
+      --text:#ffffff;
+    }
+    html,body{
+      height:100%;
+      margin:0;
+      background: linear-gradient(to bottom right, #0a1f44 10%, #1e3c72 50%, #ffffff 120%);
+      font-family: Calibri, Impact, sans-serif;
+      color: var(--text);
+      overflow:hidden;
+    }
+
+    /* Interactive bubbles */
+    .bubble{
+      position:absolute;
+      border-radius:50%;
+      background:rgba(173,216,230,0.25);
+      animation: float linear infinite;
+      filter: blur(0.5px);
+    }
+    @keyframes float{
+      0%   { transform: translateY(110vh); opacity:0.6; }
+      50%  { opacity:0.9; }
+      100% { transform: translateY(-20vh); opacity:0.4; }
+    }
+
+    /* Layout */
+    .app{
+      position:relative;
+      z-index:2;
+      max-width:980px;
+      margin:40px auto;
+      padding:20px;
+      border-radius:16px;
+      background: rgba(255,255,255,0.08);
+      box-shadow: 0 12px 32px rgba(0,0,0,0.25);
+      animation: fadeIn 700ms ease;
+    }
+    @keyframes fadeIn{
+      from{ opacity:0; transform: scale(0.98); }
+      to{   opacity:1; transform: scale(1); }
+    }
+
+    .header{
+      display:flex;
+      align-items:center;
+      gap:16px;
+      flex-wrap:wrap;
+      margin-bottom:14px;
+    }
+    .title{
+      font-family: Impact, Calibri, sans-serif;
+      font-size: 30px;
+      letter-spacing:0.5px;
+      font-weight: normal;
+      margin:0 12px 0 0;
+    }
+    .sub{
+      opacity:0.8;
+      font-size:16px;
+      margin:0;
+    }
+
+    /* Controls */
+    .controls{
+      display:grid;
+      grid-template-columns: 1fr 180px 180px 160px 160px;
+      gap:10px;
+      margin:16px 0 22px;
+    }
+    .controls input, .controls select, .controls button{
+      width:100%;
+      padding:10px 12px;
+      border:none;
+      border-radius:10px;
+      background: rgba(255,255,255,0.15);
+      color:#fff;
+      outline:none;
+      transition: transform 0.2s, background 0.25s, box-shadow 0.25s;
+      font-family: Calibri, Impact, sans-serif;
+      font-weight: normal;
+    }
+    .controls input::placeholder{ color:#e9f2ffcc; }
+    .controls button{
+      background: var(--primary);
+      cursor:pointer;
+    }
+    .controls button:hover{
+      background: var(--accent);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(30,144,255,0.35);
+    }
+    .controls input:hover, .controls select:hover{
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(255,255,255,0.15);
+    }
+
+    /* Card */
+    .card-wrap{
+      perspective: 1200px;
+      margin-bottom:14px;
+    }
+    .card{
+      position:relative;
+      width:100%;
+      min-height:240px;
+      border-radius:18px;
+      background: var(--card-bg);
+      box-shadow: 0 10px 28px rgba(0,0,0,0.25);
+      transform-style: preserve-3d;
+      transition: transform 0.7s ease, box-shadow 0.3s ease;
+    }
+    .card:hover{ box-shadow: 0 16px 36px rgba(0,0,0,0.32); }
+    .card.flipped{ transform: rotateY(180deg); }
+
+    .face{
+      position:absolute;
+      inset:0;
+      padding:22px;
+      backface-visibility: hidden;
+      display:grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap:18px;
+      align-items:center;
+    }
+    .back{
+      transform: rotateY(180deg);
+    }
+
+    .lang{
+      font-family: Impact, Calibri, sans-serif;
+      font-size: 28px;
+      font-weight: normal;
+      margin:0 0 8px 0;
+    }
+    .greet{
+      font-size:24px;
+      margin:6px 0;
+    }
+    .phonetic, .meaning{
+      font-size:16px;
+      opacity:0.9;
+      margin:4px 0;
+    }
+
+    .panel{
+      align-self:stretch;
+      border-left:1px solid rgba(255,255,255,0.18);
+      padding-left:18px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+
+    .panel button{
+      padding:12px 14px;
+      border:none;
+      border-radius:12px;
+      background: rgba(255,255,255,0.18);
+      color:#fff;
+      cursor:pointer;
+      transition: transform 0.2s, background 0.25s, box-shadow 0.25s;
+      font-family: Calibri, Impact, sans-serif;
+      font-weight: normal;
+    }
+    .panel button:hover{
+      background: var(--accent);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(70,130,180,0.35);
+    }
+
+    .tips{
+      font-size:16px;
+      line-height:1.5;
+      opacity:0.95;
+    }
+
+    /* Footer status */
+    .status{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      margin-top:12px;
+      padding:12px 14px;
+      border-radius:12px;
+      background: rgba(255,255,255,0.12);
+      font-size:15px;
+    }
+    .progressbar{
+      height:8px;
+      border-radius:8px;
+      background: rgba(255,255,255,0.18);
+      overflow:hidden;
+      flex: 1 1 auto;
+      margin: 0 12px;
+    }
+    .progressbar > div{
+      height:100%;
+      width:0%;
+      background: linear-gradient(90deg, #1e90ff, #4682b4);
+      transition: width 0.45s ease;
+    }
+
+    /* Small screens */
+    @media (max-width: 760px){
+      .controls{
+        grid-template-columns: 1fr 1fr;
+      }
+      .face{
+        grid-template-columns: 1fr;
+      }
+      .panel{
+        border-left:none;
+        border-top:1px solid rgba(255,255,255,0.18);
+        padding-left:0;
+        padding-top:14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Bubbles -->
+  <script>
+    const makeBubbles = () => {
+      const count = 30;
+      for (let i=0;i<count;i++){
+        const b = document.createElement('div');
+        const size = Math.random()*40+12;
+        b.className = 'bubble';
+        b.style.width = size+'px';
+        b.style.height = size+'px';
+        b.style.left = Math.random()*window.innerWidth+'px';
+        b.style.bottom = (-Math.random()*60)+'px';
+        b.style.animationDuration = (12+Math.random()*20)+'s';
+        b.style.animationDelay = (Math.random()*8)+'s';
+        document.body.appendChild(b);
+      }
+    };
+    makeBubbles();
+    window.addEventListener('resize', ()=> {
+      document.querySelectorAll('.bubble').forEach(el=>el.remove());
+      makeBubbles();
+    });
+  </script>
+
+  <div class="app">
+    <div class="header">
+      <h1 class="title">Learn Greetings</h1>
+      <p class="sub">Interactive language cards with pronunciation, tips, and progress</p>
+    </div>
+
+    <div class="controls">
+      <input id="search" type="search" placeholder="Search language (e.g., Zulu, French, Hindi)" />
+      <select id="region">
+        <option value="all">All regions</option>
+        <option value="Africa">Africa</option>
+        <option value="Europe">Europe</option>
+        <option value="Asia">Asia</option>
+        <option value="Americas">Americas</option>
+        <option value="Middle East">Middle East</option>
+        <option value="Oceania">Oceania</option>
+      </select>
+      <button id="shuffle">Shuffle</button>
+      <button id="prev">Previous</button>
+      <button id="next">Next</button>
+    </div>
+
+    <div class="card-wrap">
+      <div class="card" id="card">
+        <div class="face front">
+          <div>
+            <h2 class="lang" id="lang"></h2>
+            <div class="greet" id="greet"></div>
+            <div class="phonetic" id="phonetic"></div>
+            <div class="meaning" id="meaning"></div>
+          </div>
+          <div class="panel">
+            <button id="speak">Play pronunciation</button>
+            <button id="flip">Flip for cultural tips</button>
+            <button id="mark">Mark as learned</button>
+          </div>
+        </div>
+        <div class="face back">
+          <div>
+            <h2 class="lang" id="langBack"></h2>
+            <div class="tips" id="tips"></div>
+          </div>
+          <div class="panel">
+            <button id="flipBack">Back to greeting</button>
+            <button id="practice">Practice: play and repeat</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="status">
+      <div id="counter">Card 1 of 1</div>
+      <div class="progressbar"><div id="bar"></div></div>
+      <div id="learned">Learned: 0</div>
+    </div>
+  </div>
+
+  <script>
+    // Language dataset: greeting, phonetic, meaning, region, bcp47 for speech, cultural tips
+    const LANGUAGES = [
+      { lang:"English", greet:"Hello", phonetic:"heh-loh", meaning:"General greeting", region:"Americas", bcp47:"en-US",
+        tips:"Friendly and universal. Add a smile and eye contact." },
+      { lang:"Afrikaans", greet:"Hallo", phonetic:"hah-loh", meaning:"Informal hello", region:"Africa", bcp47:"af-ZA",
+        tips:"Common in South Africa; warm tone shows friendliness." },
+      { lang:"Zulu (isiZulu)", greet:"Sawubona", phonetic:"sah-woo-BOH-nah", meaning:"I see you (singular)", region:"Africa", bcp47:"zu-ZA",
+        tips:"Reply: 'Yebo'. Plural form: 'Sanibonani'." },
+      { lang:"Xhosa (isiXhosa)", greet:"Molo", phonetic:"mo-loh", meaning:"Hi (singular)", region:"Africa", bcp47:"xh-ZA",
+        tips:"Plural: 'Molweni'. Click consonants are important in pronunciation." },
+      { lang:"Sesotho", greet:"Dumelang", phonetic:"doo-meh-LAHNG", meaning:"Hello (plural)", region:"Africa", bcp47:"st-ZA",
+        tips:"Singular: 'Dumela'. Respectful and friendly." },
+      { lang:"Sepedi (Northern Sotho)", greet:"Dumela", phonetic:"doo-MEH-lah", meaning:"Hello", region:"Africa", bcp47:"nso-ZA",
+        tips:"Used widely in Limpopo; polite tone appreciated." },
+      { lang:"Setswana", greet:"Dumela", phonetic:"doo-MEH-lah", meaning:"Hello", region:"Africa", bcp47:"tn-ZA",
+        tips:"Common in Botswana and SA; handshakes are typical." },
+      { lang:"Venda (Tshivenda)", greet:"Ndaa", phonetic:"n-daa", meaning:"Hello (to men); 'Aa' to women", region:"Africa", bcp47:"ve-ZA",
+        tips:"Use 'Ndaa' for men, 'Aa' for women; shows respect." },
+      { lang:"Tsonga (Xitsonga)", greet:"Avuxeni", phonetic:"ah-voo-SHEH-nee", meaning:"Good morning/hello", region:"Africa", bcp47:"ts-ZA",
+        tips:"Greetings vary by time; 'Avuxeni' is morning/formal." },
+      { lang:"Swahili (Kiswahili)", greet:"Habari", phonetic:"hah-BAH-ree", meaning:"How are you?/news", region:"Africa", bcp47:"sw-TZ",
+        tips:"Reply: 'Nzuri'. Also 'Jambo' informally." },
+      { lang:"French", greet:"Bonjour", phonetic:"bohn-zhoor", meaning:"Good day/hello", region:"Europe", bcp47:"fr-FR",
+        tips:"Use 'Bonsoir' in the evening. Polite to add 'Monsieur/Madame'." },
+      { lang:"Spanish", greet:"Hola", phonetic:"OH-lah", meaning:"Hello", region:"Europe", bcp47:"es-ES",
+        tips:"Friendly; add '¿Qué tal?' to ask how someone is." },
+      { lang:"Portuguese", greet:"Olá", phonetic:"oh-LAH", meaning:"Hello", region:"Europe", bcp47:"pt-PT",
+        tips:"In Brazil, 'Oi' is also common and informal." },
+      { lang:"German", greet:"Hallo", phonetic:"HAH-loh", meaning:"Hello", region:"Europe", bcp47:"de-DE",
+        tips:"Formality matters; 'Guten Tag' is more formal." },
+      { lang:"Italian", greet:"Ciao", phonetic:"chow", meaning:"Hi/bye (informal)", region:"Europe", bcp47:"it-IT",
+        tips:"Use 'Buongiorno' for formal daytime greetings." },
+      { lang:"Russian", greet:"Здравствуйте", phonetic:"ZDRA-stvooy-tye", meaning:"Hello (formal)", region:"Europe", bcp47:"ru-RU",
+        tips:"Informal: 'Privet'. Emphasize respectful tone." },
+      { lang:"Arabic", greet:"مرحبا", phonetic:"mar-hah-ban", meaning:"Hello", region:"Middle East", bcp47:"ar-SA",
+        tips:"Often followed by 'السلام عليكم' (peace be upon you)." },
+      { lang:"Hindi", greet:"नमस्ते", phonetic:"nah-mah-stay", meaning:"Hello/respectful greeting", region:"Asia", bcp47:"hi-IN",
+        tips:"Traditional gesture: slight bow with joined hands." },
+      { lang:"Mandarin Chinese", greet:"你好", phonetic:"nee-hao", meaning:"Hello", region:"Asia", bcp47:"zh-CN",
+        tips:"Use '您好' (nín hǎo) for extra-polite form." },
+      { lang:"Japanese", greet:"こんにちは", phonetic:"kon-ni-chi-wa", meaning:"Good day/hello", region:"Asia", bcp47:"ja-JP",
+        tips:"Bow slightly; different forms by time of day." },
+      { lang:"Korean", greet:"안녕하세요", phonetic:"an-nyeong-ha-se-yo", meaning:"Hello (polite)", region:"Asia", bcp47:"ko-KR",
+        tips:"Respect levels matter; '안녕' for close friends." }
+    ];
+
+    // State
+    let filtered = [...LANGUAGES];
+    let index = 0;
+    const learned = new Set();
+
+    // Elements
+    const card = document.getElementById('card');
+    const langEl = document.getElementById('lang');
+    const greetEl = document.getElementById('greet');
+    const phoneticEl = document.getElementById('phonetic');
+    const meaningEl = document.getElementById('meaning');
+    const langBackEl = document.getElementById('langBack');
+    const tipsEl = document.getElementById('tips');
+    const counterEl = document.getElementById('counter');
+    const barEl = document.getElementById('bar');
+    const learnedEl = document.getElementById('learned');
+
+    const searchInput = document.getElementById('search');
+    const regionSelect = document.getElementById('region');
+    const shuffleBtn = document.getElementById('shuffle');
+    const prevBtn = document.getElementById('prev');
+    const nextBtn = document.getElementById('next');
+    const flipBtn = document.getElementById('flip');
+    const flipBackBtn = document.getElementById('flipBack');
+    const speakBtn = document.getElementById('speak');
+    const practiceBtn = document.getElementById('practice');
+    const markBtn = document.getElementById('mark');
+
+    // Load voices for speech
+    let voices = [];
+    function loadVoices(){
+      voices = window.speechSynthesis ? window.speechSynthesis.getVoices() : [];
+    }
+    loadVoices();
+    if (window.speechSynthesis){
+      window.speechSynthesis.onvoiceschanged = loadVoices;
+    }
+
+    function selectVoice(tag){
+      if (!voices || voices.length === 0) return null;
+      // Try exact match, then prefix match, else first voice
+      const exact = voices.find(v => v.lang && v.lang.toLowerCase() === tag.toLowerCase());
+      if (exact) return exact;
+      const prefix = voices.find(v => v.lang && v.lang.toLowerCase().startsWith(tag.split('-')[0].toLowerCase()));
+      return prefix || voices[0];
+    }
+
+    function speak(text, tag){
+      if (!('speechSynthesis' in window)) {
+        alert('Pronunciation not supported in this browser.');
+        return;
+      }
+      const utter = new SpeechSynthesisUtterance(text);
+      const voice = selectVoice(tag);
+      if (voice) utter.voice = voice;
+      utter.rate = 0.95;
+      utter.pitch = 1.0;
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(utter);
+    }
+
+    function render(){
+      const item = filtered[index];
+      if (!item){ return; }
+      langEl.textContent = item.lang;
+      greetEl.textContent = item.greet;
+      phoneticEl.textContent = "Phonetic: " + item.phonetic;
+      meaningEl.textContent = "Meaning: " + item.meaning;
+      langBackEl.textContent = item.lang + " — Tips";
+      tipsEl.textContent = item.tips;
+
+      counterEl.textContent = `Card ${index+1} of ${filtered.length}`;
+      barEl.style.width = `${((index+1)/filtered.length)*100}%`;
+      learnedEl.textContent = `Learned: ${learned.size}`;
+    }
+
+    function flip(toBack=true){
+      if (toBack) card.classList.add('flipped');
+      else card.classList.remove('flipped');
+    }
+
+    function applyFilters(){
+      const q = searchInput.value.trim().toLowerCase();
+      const r = regionSelect.value;
+      filtered = LANGUAGES.filter(x => {
+        const matchQ = !q || x.lang.toLowerCase().includes(q);
+        const matchR = r === 'all' || x.region === r;
+        return matchQ && matchR;
+      });
+      if (filtered.length === 0){
+        filtered = [];
+        index = 0;
+        langEl.textContent = "No results";
+        greetEl.textContent = "";
+        phoneticEl.textContent = "";
+        meaningEl.textContent = "";
+        langBackEl.textContent = "";
+        tipsEl.textContent = "Try clearing search or choosing another region.";
+        counterEl.textContent = "Card 0 of 0";
+        barEl.style.width = "0%";
+        return;
+      }
+      index = 0;
+      flip(false);
+      render();
+    }
+
+    function next(){
+      if (filtered.length === 0) return;
+      index = (index + 1) % filtered.length;
+      flip(false);
+      animateCard();
+      render();
+    }
+
+    function prev(){
+      if (filtered.length === 0) return;
+      index = (index - 1 + filtered.length) % filtered.length;
+      flip(false);
+      animateCard();
+      render();
+    }
+
+    function shuffle(){
+      for (let i=filtered.length-1;i>0;i--){
+        const j = Math.floor(Math.random()*(i+1));
+        [filtered[i], filtered[j]] = [filtered[j], filtered[i]];
+      }
+      index = 0;
+      animateCard();
+      render();
+    }
+
+    function animateCard(){
+      card.style.transition = 'transform 0.35s ease, box-shadow 0.35s ease';
+      card.style.transform = 'translateY(-4px)';
+      setTimeout(()=>{
+        card.style.transform = '';
+      }, 200);
+    }
+
+    // Event bindings
+    searchInput.addEventListener('input', applyFilters);
+    regionSelect.addEventListener('change', applyFilters);
+    shuffleBtn.addEventListener('click', shuffle);
+    nextBtn.addEventListener('click', next);
+    prevBtn.addEventListener('click', prev);
+    flipBtn.addEventListener('click', ()=> flip(true));
+    flipBackBtn.addEventListener('click', ()=> flip(false));
+
+    speakBtn.addEventListener('click', ()=>{
+      const item = filtered[index];
+      speak(item.greet, item.bcp47 || 'en-US');
+    });
+
+    practiceBtn.addEventListener('click', ()=>{
+      const item = filtered[index];
+      speak(item.greet, item.bcp47 || 'en-US');
+      setTimeout(()=> speak(item.greet, item.bcp47 || 'en-US'), 1200);
+    });
+
+    markBtn.addEventListener('click', ()=>{
+      const item = filtered[index];
+      learned.add(item.lang);
+      learnedEl.textContent = `Learned: ${learned.size}`;
+      next();
+    });
+
+    // Initialize
+    render();
+  </script>
+</body>
+</html>
